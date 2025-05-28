@@ -1,184 +1,136 @@
+"use client"
 
-'use client'
+import { createContext, ReactNode, useContext, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useToast } from './use-toast'
+type User = {
+  id: number;
+  username: string;
+  email: string;
+  fullName: string;
+};
 
-interface User {
-  id: number
-  username: string
-  email: string
-  fullName: string
-  level: string
-  credits: number
-  role?: string
-}
+type AuthContextType = {
+  user: User | null;
+  isLoading: boolean;
+  login: (credentials: { username: string; password: string }) => Promise<void>;
+  logout: () => Promise<void>;
+  register: (credentials: { username: string; email: string; password: string; fullName: string }) => Promise<void>;
+};
 
-interface AuthContextType {
-  user: User | null
-  isLoading: boolean
-  login: (username: string, password: string) => Promise<void>
-  register: (data: RegisterData) => Promise<void>
-  logout: () => Promise<void>
-  refreshUser: () => Promise<void>
-}
-
-interface RegisterData {
-  username: string
-  password: string
-  email: string
-  fullName: string
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const router = useRouter()
-  const { toast } = useToast()
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const checkAuth = async () => {
-    try {
-      const response = await fetch('/api/user', {
-        credentials: 'include',
-      })
-      
-      if (response.ok) {
-        const userData = await response.json()
-        setUser(userData)
-      } else {
-        setUser(null)
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error)
-      setUser(null)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    checkAuth()
-  }, [])
-
-  const login = async (username: string, password: string) => {
+  const login = async (credentials: { username: string; password: string }) => {
+    setIsLoading(true);
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
-        credentials: 'include',
-      })
+        body: JSON.stringify(credentials),
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Login failed')
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
       }
 
-      const userData = await response.json()
-      setUser(userData)
-      
+      const userData = await response.json();
+      setUser(userData);
       toast({
-        title: "Welcome back!",
-        description: "You have been logged in successfully.",
-      })
-      
-      router.push('/dashboard')
+        title: "Login successful",
+        description: `Welcome back, ${userData.username}!`,
+      });
     } catch (error: any) {
-      console.error('Login error:', error)
       toast({
         title: "Login failed",
         description: error.message,
         variant: "destructive",
-      })
-      throw error
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
-  const register = async (data: RegisterData) => {
+  const register = async (credentials: { username: string; email: string; password: string; fullName: string }) => {
+    setIsLoading(true);
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
-        credentials: 'include',
-      })
+        body: JSON.stringify(credentials),
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Registration failed')
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
       }
 
-      const userData = await response.json()
-      setUser(userData)
-      
+      const userData = await response.json();
+      setUser(userData);
       toast({
-        title: "Account created!",
-        description: "Welcome to BotBuilder AI. You can now create your first bot.",
-      })
-      
-      router.push('/dashboard')
+        title: "Registration successful",
+        description: `Welcome, ${userData.username}!`,
+      });
     } catch (error: any) {
-      console.error('Registration error:', error)
       toast({
         title: "Registration failed",
         description: error.message,
         variant: "destructive",
-      })
-      throw error
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
   const logout = async () => {
     try {
       await fetch('/api/auth/logout', {
         method: 'POST',
-        credentials: 'include',
-      })
-      
-      setUser(null)
+      });
+      setUser(null);
       toast({
         title: "Logged out",
-        description: "You have been logged out successfully.",
-      })
-      router.push('/landing-page')
+        description: "You have been logged out successfully",
+      });
     } catch (error: any) {
-      console.error('Logout error:', error)
       toast({
         title: "Logout failed",
         description: error.message,
         variant: "destructive",
-      })
-      throw error
+      });
     }
-  }
+  };
 
-  const refreshUser = async () => {
-    await checkAuth()
-  }
-
-  const value = {
-    user,
-    isLoading,
-    login,
-    register,
-    logout,
-    refreshUser,
-  }
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        login,
+        logout,
+        register,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context
+  return context;
 }
