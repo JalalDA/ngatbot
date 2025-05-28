@@ -3,6 +3,7 @@
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useToast } from './use-toast'
 
 interface User {
   id: number
@@ -36,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+  const { toast } = useToast()
 
   const checkAuth = async () => {
     try {
@@ -79,9 +81,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const userData = await response.json()
       setUser(userData)
+      
+      toast({
+        title: "Welcome back!",
+        description: "You have been logged in successfully.",
+      })
+      
       router.push('/dashboard')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error)
+      toast({
+        title: "Login failed",
+        description: error.message,
+        variant: "destructive",
+      })
       throw error
     }
   }
@@ -104,9 +117,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const userData = await response.json()
       setUser(userData)
+      
+      toast({
+        title: "Account created!",
+        description: "Welcome to BotBuilder AI. You can now create your first bot.",
+      })
+      
       router.push('/dashboard')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error)
+      toast({
+        title: "Registration failed",
+        description: error.message,
+        variant: "destructive",
+      })
       throw error
     }
   }
@@ -119,9 +143,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       
       setUser(null)
+      toast({
+        title: "Logged out",
+        description: "You have been logged out successfully.",
+      })
       router.push('/landing-page')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Logout error:', error)
+      toast({
+        title: "Logout failed",
+        description: error.message,
+        variant: "destructive",
+      })
       throw error
     }
   }

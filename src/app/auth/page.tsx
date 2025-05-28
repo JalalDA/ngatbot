@@ -1,298 +1,241 @@
-
 'use client'
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react"
+import { useAuth } from "@/hooks/use-auth"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Loader2 } from "lucide-react"
 
-const insertUserSchema = z.object({
+const loginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+})
+
+const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
-  email: z.string().email("Invalid email format"),
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  fullName: z.string().min(1, "Full name is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-const loginSchema = insertUserSchema.pick({ username: true, password: true });
-const registerSchema = insertUserSchema.extend({
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
-});
+})
 
-type LoginData = z.infer<typeof loginSchema>;
-type RegisterData = z.infer<typeof registerSchema>;
+type LoginData = z.infer<typeof loginSchema>
+type RegisterData = z.infer<typeof registerSchema>
 
 export default function AuthPage() {
-  const { user, loginMutation, registerMutation } = useAuth();
-  const router = useRouter();
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("login");
+  const { user, login, register, isLoading: authLoading } = useAuth()
+  const router = useRouter()
+  const [activeTab, setActiveTab] = useState("login")
+  const [isLoading, setIsLoading] = useState(false)
 
   const loginForm = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { username: "", password: "" },
-  });
+  })
 
   const registerForm = useForm<RegisterData>({
     resolver: zodResolver(registerSchema),
     defaultValues: { username: "", email: "", fullName: "", password: "", confirmPassword: "" },
-  });
+  })
 
   // Auto redirect if already logged in
   useEffect(() => {
-    if (user) {
-      router.push("/dashboard");
+    if (user && !authLoading) {
+      router.push("/dashboard")
     }
-  }, [user, router]);
+  }, [user, authLoading, router])
 
   const onLogin = async (data: LoginData) => {
+    setIsLoading(true)
     try {
-      await loginMutation.mutateAsync(data);
-      toast({
-        title: "Welcome back!",
-        description: "You have been logged in successfully.",
-      });
-      router.push("/dashboard");
+      await login(data.username, data.password)
     } catch (error) {
-      // Error is handled in the mutation
+      // Error is handled in the auth hook
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
 
   const onRegister = async (data: RegisterData) => {
+    setIsLoading(true)
     try {
-      const { confirmPassword, ...registerData } = data;
-      await registerMutation.mutateAsync(registerData);
-      toast({
-        title: "Account created!",
-        description: "Welcome to BotBuilder AI. You can now create your first bot.",
-      });
-      router.push("/dashboard");
+      const { confirmPassword, ...registerData } = data
+      await register(registerData)
     } catch (error) {
-      // Error is handled in the mutation
+      // Error is handled in the auth hook
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-white" />
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen flex bg-background">
-      {/* Left side - Auth forms */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-background">
-        <div className="w-full max-w-md">
-          <div className="flex items-center space-x-2 mb-8">
-            <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary/80 rounded-lg flex items-center justify-center animate-glow-pulse">
-              <i className="fas fa-robot text-primary-foreground text-sm"></i>
-            </div>
-            <span className="text-xl font-bold text-foreground">BotBuilder AI</span>
-          </div>
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <Card className="bg-slate-800 border-slate-700">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl text-white">Welcome to BotBuilder AI</CardTitle>
+            <CardDescription className="text-slate-400">
+              Create and manage your Telegram bots
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2 bg-slate-700">
+                <TabsTrigger value="login" className="text-white data-[state=active]:bg-slate-600">
+                  Login
+                </TabsTrigger>
+                <TabsTrigger value="register" className="text-white data-[state=active]:bg-slate-600">
+                  Register
+                </TabsTrigger>
+              </TabsList>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
-            </TabsList>
+              <TabsContent value="login">
+                <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="username" className="text-white">Username</Label>
+                    <Input
+                      id="username"
+                      {...loginForm.register("username")}
+                      className="bg-slate-700 border-slate-600 text-white"
+                      disabled={isLoading}
+                    />
+                    {loginForm.formState.errors.username && (
+                      <p className="text-red-400 text-sm">{loginForm.formState.errors.username.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-white">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      {...loginForm.register("password")}
+                      className="bg-slate-700 border-slate-600 text-white"
+                      disabled={isLoading}
+                    />
+                    {loginForm.formState.errors.password && (
+                      <p className="text-red-400 text-sm">{loginForm.formState.errors.password.message}</p>
+                    )}
+                  </div>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Logging in...
+                      </>
+                    ) : (
+                      "Login"
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
 
-            <TabsContent value="login">
-              <Card className="interactive-card">
-                <CardHeader>
-                  <CardTitle className="text-foreground">Welcome Back</CardTitle>
-                  <CardDescription className="text-muted-foreground">
-                    Sign in to your account to continue building bots
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="login-username" className="text-foreground">Username</Label>
-                      <Input
-                        id="login-username"
-                        type="text"
-                        placeholder="Enter your username"
-                        className="bg-input border-border text-foreground placeholder:text-muted-foreground"
-                        {...loginForm.register("username")}
-                        disabled={loginMutation.isPending}
-                      />
-                      {loginForm.formState.errors.username && (
-                        <p className="text-sm text-destructive">
-                          {loginForm.formState.errors.username.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="login-password" className="text-foreground">Password</Label>
-                      <Input
-                        id="login-password"
-                        type="password"
-                        placeholder="Enter your password"
-                        className="bg-input border-border text-foreground placeholder:text-muted-foreground"
-                        {...loginForm.register("password")}
-                        disabled={loginMutation.isPending}
-                      />
-                      {loginForm.formState.errors.password && (
-                        <p className="text-sm text-destructive">
-                          {loginForm.formState.errors.password.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <Button 
-                      type="submit" 
-                      className="w-full interactive-button bg-primary text-primary-foreground hover:bg-primary/90"
-                      disabled={loginMutation.isPending}
-                    >
-                      {loginMutation.isPending ? "Signing in..." : "Sign In"}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="register">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Create Account</CardTitle>
-                  <CardDescription>
-                    Get started with your AI-powered Telegram bots
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="register-name">Full Name</Label>
-                      <Input
-                        id="register-name"
-                        type="text"
-                        placeholder="Enter your full name"
-                        {...registerForm.register("fullName")}
-                        disabled={registerMutation.isPending}
-                      />
-                      {registerForm.formState.errors.fullName && (
-                        <p className="text-sm text-destructive">
-                          {registerForm.formState.errors.fullName.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="register-username">Username</Label>
-                      <Input
-                        id="register-username"
-                        type="text"
-                        placeholder="Choose a username"
-                        {...registerForm.register("username")}
-                        disabled={registerMutation.isPending}
-                      />
-                      {registerForm.formState.errors.username && (
-                        <p className="text-sm text-destructive">
-                          {registerForm.formState.errors.username.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="register-email">Email</Label>
-                      <Input
-                        id="register-email"
-                        type="email"
-                        placeholder="Enter your email"
-                        {...registerForm.register("email")}
-                        disabled={registerMutation.isPending}
-                      />
-                      {registerForm.formState.errors.email && (
-                        <p className="text-sm text-destructive">
-                          {registerForm.formState.errors.email.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="register-password">Password</Label>
-                      <Input
-                        id="register-password"
-                        type="password"
-                        placeholder="Create a password"
-                        {...registerForm.register("password")}
-                        disabled={registerMutation.isPending}
-                      />
-                      {registerForm.formState.errors.password && (
-                        <p className="text-sm text-destructive">
-                          {registerForm.formState.errors.password.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="register-confirm">Confirm Password</Label>
-                      <Input
-                        id="register-confirm"
-                        type="password"
-                        placeholder="Confirm your password"
-                        {...registerForm.register("confirmPassword")}
-                        disabled={registerMutation.isPending}
-                      />
-                      {registerForm.formState.errors.confirmPassword && (
-                        <p className="text-sm text-destructive">
-                          {registerForm.formState.errors.confirmPassword.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-primary text-white hover:bg-primary/90"
-                      disabled={registerMutation.isPending}
-                    >
-                      {registerMutation.isPending ? "Creating account..." : "Create Account"}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-
-      {/* Right side - Hero section */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary to-secondary-500 p-12 text-white items-center justify-center">
-        <div className="max-w-md text-center">
-          <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-8">
-            <i className="fas fa-robot text-4xl"></i>
-          </div>
-          <h2 className="text-3xl font-bold mb-4">
-            Build Smart Telegram Bots
-          </h2>
-          <p className="text-lg opacity-90 mb-6">
-            Create AI-powered bots that understand your business and provide intelligent responses to your customers.
-          </p>
-          <div className="space-y-3 text-left">
-            <div className="flex items-center space-x-3">
-              <i className="fas fa-check-circle text-emerald-300"></i>
-              <span>Quick bot setup with token validation</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <i className="fas fa-check-circle text-emerald-300"></i>
-              <span>AI-powered responses using OpenAI GPT</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <i className="fas fa-check-circle text-emerald-300"></i>
-              <span>Custom knowledge base management</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <i className="fas fa-check-circle text-emerald-300"></i>
-              <span>Credit-based usage tracking</span>
-            </div>
-          </div>
-        </div>
+              <TabsContent value="register">
+                <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="reg-username" className="text-white">Username</Label>
+                    <Input
+                      id="reg-username"
+                      {...registerForm.register("username")}
+                      className="bg-slate-700 border-slate-600 text-white"
+                      disabled={isLoading}
+                    />
+                    {registerForm.formState.errors.username && (
+                      <p className="text-red-400 text-sm">{registerForm.formState.errors.username.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-white">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      {...registerForm.register("email")}
+                      className="bg-slate-700 border-slate-600 text-white"
+                      disabled={isLoading}
+                    />
+                    {registerForm.formState.errors.email && (
+                      <p className="text-red-400 text-sm">{registerForm.formState.errors.email.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName" className="text-white">Full Name</Label>
+                    <Input
+                      id="fullName"
+                      {...registerForm.register("fullName")}
+                      className="bg-slate-700 border-slate-600 text-white"
+                      disabled={isLoading}
+                    />
+                    {registerForm.formState.errors.fullName && (
+                      <p className="text-red-400 text-sm">{registerForm.formState.errors.fullName.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reg-password" className="text-white">Password</Label>
+                    <Input
+                      id="reg-password"
+                      type="password"
+                      {...registerForm.register("password")}
+                      className="bg-slate-700 border-slate-600 text-white"
+                      disabled={isLoading}
+                    />
+                    {registerForm.formState.errors.password && (
+                      <p className="text-red-400 text-sm">{registerForm.formState.errors.password.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-white">Confirm Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      {...registerForm.register("confirmPassword")}
+                      className="bg-slate-700 border-slate-600 text-white"
+                      disabled={isLoading}
+                    />
+                    {registerForm.formState.errors.confirmPassword && (
+                      <p className="text-red-400 text-sm">{registerForm.formState.errors.confirmPassword.message}</p>
+                    )}
+                  </div>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating account...
+                      </>
+                    ) : (
+                      "Create Account"
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </div>
-  );
+  )
 }

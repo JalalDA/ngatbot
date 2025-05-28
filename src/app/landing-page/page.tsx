@@ -1,115 +1,213 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { useRouter } from 'next/navigation'
+import { useState } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Bot, Zap, Shield, Users, ArrowRight, Star, Check } from "lucide-react"
 
 export default function LandingPage() {
-  const router = useRouter()
-  const [isLoaded, setIsLoaded] = useState(false)
+  const [activeFeature, setActiveFeature] = useState(0)
 
-  useEffect(() => {
-    setIsLoaded(true)
-  }, [])
+  const features = [
+    {
+      icon: <Bot className="h-8 w-8" />,
+      title: "AI-Powered Bots",
+      description: "Create intelligent Telegram bots with advanced AI capabilities"
+    },
+    {
+      icon: <Zap className="h-8 w-8" />,
+      title: "Easy Integration",
+      description: "Connect with popular services and APIs effortlessly"
+    },
+    {
+      icon: <Shield className="h-8 w-8" />,
+      title: "Secure & Reliable",
+      description: "Enterprise-grade security with 99.9% uptime guarantee"
+    },
+    {
+      icon: <Users className="h-8 w-8" />,
+      title: "Multi-User Support",
+      description: "Manage multiple bots and collaborate with your team"
+    }
+  ]
 
-  const handleGetStarted = () => {
-    router.push('/auth')
-  }
+  const testimonials = [
+    {
+      name: "Ahmad Rahman",
+      role: "Digital Marketer",
+      content: "BotBuilder AI transformed our customer service. Response time reduced by 80%!",
+      rating: 5
+    },
+    {
+      name: "Sarah Chen",
+      role: "E-commerce Owner",
+      content: "The best bot platform I've used. Easy to set up and incredibly powerful.",
+      rating: 5
+    },
+    {
+      name: "Michael Torres",
+      role: "Tech Entrepreneur", 
+      content: "Automated our entire sales funnel. Revenue increased by 150% in 3 months.",
+      rating: 5
+    }
+  ]
 
-  const handleLearnMore = () => {
-    router.push('/dashboard')
-  }
+  const pricingPlans = [
+    {
+      name: "Starter",
+      price: "Free",
+      period: "",
+      description: "Perfect for getting started",
+      features: [
+        "1 Active Bot",
+        "100 Messages/month",
+        "Basic AI Features",
+        "Community Support"
+      ],
+      popular: false
+    },
+    {
+      name: "Pro",
+      price: "$29",
+      period: "/month",
+      description: "For growing businesses",
+      features: [
+        "5 Active Bots",
+        "10,000 Messages/month",
+        "Advanced AI Features",
+        "Priority Support",
+        "Custom Integrations"
+      ],
+      popular: true
+    },
+    {
+      name: "Enterprise",
+      price: "$99",
+      period: "/month",
+      description: "For large organizations",
+      features: [
+        "Unlimited Bots",
+        "Unlimited Messages",
+        "Full AI Suite",
+        "24/7 Dedicated Support",
+        "Custom Development",
+        "SLA Guarantee"
+      ],
+      popular: false
+    }
+  ]
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 transition-all duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {/* Navigation */}
-      <nav className="w-full px-6 py-4 backdrop-blur-sm bg-white/10 dark:bg-gray-900/10 border-b border-white/20">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <i className="fas fa-robot text-white text-sm"></i>
+      <nav className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <Bot className="text-white text-sm" />
+              </div>
+              <span className="text-xl font-bold text-white">BotBuilder AI</span>
             </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">BotBuilder AI</span>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" onClick={() => router.push('/auth')}>
-              Sign In
-            </Button>
-            <Button onClick={handleGetStarted} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-              Get Started
-            </Button>
+            
+            <div className="flex items-center space-x-4">
+              <Link href="/auth">
+                <Button variant="ghost" className="text-slate-300 hover:text-white">
+                  Login
+                </Button>
+              </Link>
+              <Link href="/auth">
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  Get Started
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="px-6 py-20 text-center">
-        <div className="max-w-4xl mx-auto">
-          <Badge variant="secondary" className="mb-4 px-4 py-2 text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-            🚀 AI-Powered Bot Builder
+      <section className="pt-20 pb-32 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <Badge className="mb-6 bg-blue-600/20 text-blue-400 border-blue-600/30">
+            🚀 Now with GPT-4 Integration
           </Badge>
           
-          <h1 className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-            Build Smart
-            <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Telegram Bots
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+            Build Powerful
+            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              {" "}AI Bots
             </span>
+            <br />
+            in Minutes
           </h1>
           
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Create AI-powered Telegram bots that understand your business and provide intelligent responses to your customers. No coding required.
+          <p className="text-xl text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed">
+            Create intelligent Telegram bots that understand natural language, 
+            automate tasks, and engage with your audience 24/7. No coding required.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button 
-              size="lg" 
-              onClick={handleGetStarted}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
-            >
-              Start Building Now
-              <i className="fas fa-arrow-right ml-2"></i>
+            <Link href="/auth">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3">
+                Start Building Free
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+            <Button size="lg" variant="outline" className="text-slate-300 border-slate-600 hover:bg-slate-800 text-lg px-8 py-3">
+              Watch Demo
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              onClick={handleLearnMore}
-              className="border-2 border-gray-300 dark:border-gray-600 px-8 py-4 text-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300"
-            >
-              <i className="fas fa-play mr-2"></i>
-              See Demo
-            </Button>
+          </div>
+          
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div>
+              <div className="text-3xl font-bold text-blue-400">10,000+</div>
+              <div className="text-slate-400">Active Bots</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-green-400">99.9%</div>
+              <div className="text-slate-400">Uptime</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-purple-400">50M+</div>
+              <div className="text-slate-400">Messages Processed</div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="px-6 py-20 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-800/50">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-4xl font-bold text-white mb-4">
               Everything You Need to Build Amazing Bots
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Our platform provides all the tools and features you need to create, deploy, and manage intelligent Telegram bots.
+            <p className="text-xl text-slate-300 max-w-2xl mx-auto">
+              Powerful features that make bot creation simple and effective
             </p>
           </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <Card 
+                key={index}
+                className={`bg-slate-900/50 border-slate-700 hover:border-blue-600/50 transition-all cursor-pointer ${
+                  activeFeature === index ? 'border-blue-600/50 bg-blue-600/10' : ''
+                }`}
+                onMouseEnter={() => setActiveFeature(index)}
+              >
                 <CardHeader>
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${feature.color}`}>
-                    <i className={`${feature.icon} text-white text-xl`}></i>
+                  <div className="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center text-blue-400 mb-4">
+                    {feature.icon}
                   </div>
-                  <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">
-                    {feature.title}
-                  </CardTitle>
+                  <CardTitle className="text-white">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-gray-600 dark:text-gray-300 text-base leading-relaxed">
+                  <CardDescription className="text-slate-300">
                     {feature.description}
                   </CardDescription>
                 </CardContent>
@@ -119,110 +217,135 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="px-6 py-20">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-12">
-            Trusted by Businesses Worldwide
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                  {stat.value}
-                </div>
-                <div className="text-gray-600 dark:text-gray-300 font-medium">
-                  {stat.label}
-                </div>
-              </div>
+      {/* Testimonials */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Loved by Developers and Businesses
+            </h2>
+            <p className="text-xl text-slate-300">
+              See what our users are saying about BotBuilder AI
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="bg-slate-900/50 border-slate-700">
+                <CardHeader>
+                  <div className="flex items-center space-x-1 mb-2">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <CardDescription className="text-slate-300 text-base">
+                    "{testimonial.content}"
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-white font-semibold">{testimonial.name}</div>
+                  <div className="text-slate-400 text-sm">{testimonial.role}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-800/50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Simple, Transparent Pricing
+            </h2>
+            <p className="text-xl text-slate-300">
+              Choose the plan that's right for your needs
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {pricingPlans.map((plan, index) => (
+              <Card 
+                key={index}
+                className={`bg-slate-900/50 border-slate-700 relative ${
+                  plan.popular ? 'border-blue-600/50 scale-105' : ''
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-blue-600 text-white">Most Popular</Badge>
+                  </div>
+                )}
+                <CardHeader>
+                  <CardTitle className="text-white text-2xl">{plan.name}</CardTitle>
+                  <div className="text-3xl font-bold text-white">
+                    {plan.price}
+                    <span className="text-lg text-slate-400">{plan.period}</span>
+                  </div>
+                  <CardDescription className="text-slate-300">
+                    {plan.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3 mb-6">
+                    {plan.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-center space-x-3">
+                        <Check className="h-4 w-4 text-green-400 flex-shrink-0" />
+                        <span className="text-slate-300">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link href="/auth">
+                    <Button 
+                      className={`w-full ${
+                        plan.popular 
+                          ? 'bg-blue-600 hover:bg-blue-700' 
+                          : 'bg-slate-700 hover:bg-slate-600'
+                      }`}
+                    >
+                      Get Started
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="px-6 py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">
+          <h2 className="text-4xl font-bold text-white mb-4">
             Ready to Build Your First Bot?
           </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of businesses using BotBuilder AI to automate customer support and boost engagement.
+          <p className="text-xl text-slate-300 mb-8">
+            Join thousands of developers and businesses using BotBuilder AI
           </p>
-          <Button 
-            size="lg"
-            onClick={handleGetStarted}
-            className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
-          >
-            Get Started Free
-            <i className="fas fa-rocket ml-2"></i>
-          </Button>
+          <Link href="/auth">
+            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3">
+              Start Building Now
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="px-6 py-12 bg-gray-900 text-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <i className="fas fa-robot text-white text-sm"></i>
-              </div>
-              <span className="text-xl font-bold">BotBuilder AI</span>
+      <footer className="border-t border-slate-800 py-12 px-4 sm:px-6 lg:px-8 bg-slate-900">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <Bot className="text-white text-sm" />
             </div>
-            <div className="text-gray-400 text-center md:text-right">
-              <p>&copy; 2024 BotBuilder AI. All rights reserved.</p>
-              <p className="text-sm mt-1">Building the future of AI-powered communication.</p>
-            </div>
+            <span className="text-xl font-bold text-white">BotBuilder AI</span>
           </div>
+          <p className="text-slate-400">
+            © 2024 BotBuilder AI. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>
   )
 }
-
-const features = [
-  {
-    icon: "fas fa-magic",
-    title: "AI-Powered Responses",
-    description: "Advanced GPT integration provides intelligent, context-aware responses to your customers automatically.",
-    color: "bg-gradient-to-r from-purple-500 to-pink-500"
-  },
-  {
-    icon: "fas fa-cog",
-    title: "Easy Setup",
-    description: "Create and deploy your bot in minutes with our intuitive drag-and-drop interface. No coding required.",
-    color: "bg-gradient-to-r from-blue-500 to-indigo-500"
-  },
-  {
-    icon: "fas fa-database",
-    title: "Knowledge Base",
-    description: "Upload your business documents and let your bot learn from your specific content and policies.",
-    color: "bg-gradient-to-r from-green-500 to-emerald-500"
-  },
-  {
-    icon: "fas fa-chart-line",
-    title: "Analytics Dashboard",
-    description: "Track conversations, user engagement, and bot performance with detailed analytics and insights.",
-    color: "bg-gradient-to-r from-orange-500 to-red-500"
-  },
-  {
-    icon: "fas fa-shield-alt",
-    title: "Secure & Reliable",
-    description: "Enterprise-grade security with 99.9% uptime guarantee. Your data is always protected and accessible.",
-    color: "bg-gradient-to-r from-indigo-500 to-purple-500"
-  },
-  {
-    icon: "fas fa-users",
-    title: "Multi-User Support",
-    description: "Handle thousands of simultaneous conversations with advanced queue management and response optimization.",
-    color: "bg-gradient-to-r from-teal-500 to-cyan-500"
-  }
-]
-
-const stats = [
-  { value: "10K+", label: "Active Bots" },
-  { value: "1M+", label: "Messages Processed" },
-  { value: "99.9%", label: "Uptime" },
-  { value: "500+", label: "Happy Customers" }
-]
