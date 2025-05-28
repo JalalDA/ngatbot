@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -92,15 +91,15 @@ export default function LandingPage() {
               <Sparkles className="w-3 h-3 mr-1" />
               AI-Powered Platform
             </Badge>
-            
+
             <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
               Build Intelligent Telegram Bots
             </h1>
-            
+
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
               Create, deploy, and manage AI-powered Telegram bots that engage your audience and automate your business processes.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button 
                 onClick={handleGetStarted}
@@ -120,12 +119,12 @@ export default function LandingPage() {
                   </>
                 )}
               </Button>
-              
+
               <Button variant="outline" size="lg" className="px-8 py-3">
                 View Demo
               </Button>
             </div>
-            
+
             <div className="mt-8 flex items-center justify-center gap-6 text-sm text-gray-500">
               <div className="flex items-center">
                 <Check className="w-4 h-4 text-green-500 mr-1" />
@@ -155,7 +154,7 @@ export default function LandingPage() {
               Everything you need to create, deploy, and manage intelligent Telegram bots that your users will love.
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="text-center hover:shadow-lg transition-shadow">
@@ -207,7 +206,7 @@ export default function LandingPage() {
               See what our users are saying about BotBuilder AI
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow">
@@ -240,7 +239,7 @@ export default function LandingPage() {
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
             Join thousands of developers and businesses who trust BotBuilder AI to power their Telegram automation.
           </p>
-          
+
           <Button 
             onClick={handleGetStarted}
             disabled={isLoading}
