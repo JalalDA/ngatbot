@@ -23,12 +23,14 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <Providers>
-            {children}
+            <div className="min-h-screen bg-background text-foreground">
+              {children}
+            </div>
           </Providers>
         </ThemeProvider>
       </body>
