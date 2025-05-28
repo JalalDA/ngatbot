@@ -1,149 +1,38 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, json } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
+
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  email: text("email").notNull().unique(),
-  password: text("password").notNull(),
-  fullName: text("full_name").notNull(),
-  role: text("role").notNull().default("user"), // user, admin
-  level: text("level").notNull().default("basic"), // basic, pro, business
-  credits: integer("credits").notNull().default(250),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+// Zod schemas untuk validasi input
+export const insertUserSchema = z.object({
+  username: z.string(),
+  email: z.string().email(),
+  password: z.string().min(6),
+  fullName: z.string(),
 });
 
-export const bots = pgTable("bots", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  token: text("token").notNull(),
-  botName: text("bot_name").notNull(),
-  botUsername: text("bot_username").notNull(),
-  systemPrompt: text("system_prompt").default("You are a helpful assistant that can answer questions and provide information."),
-  isActive: boolean("is_active").notNull().default(true),
-  messageCount: integer("message_count").notNull().default(0),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+export const insertBotSchema = z.object({
+  token: z.string(),
 });
 
-export const knowledge = pgTable("knowledge", {
-  id: serial("id").primaryKey(),
-  botId: integer("bot_id").notNull().references(() => bots.id, { onDelete: "cascade" }),
-  type: text("type").notNull(), // text, link, file
-  content: text("content").notNull(),
-  url: text("url"), // for link type
-  fileName: text("file_name"), // for file type
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+export const insertKnowledgeSchema = z.object({
+  botId: z.number(),
+  type: z.string(),
+  content: z.string(),
+  url: z.string().optional(),
+  fileName: z.string().optional(),
 });
 
-export const transactions = pgTable("transactions", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  plan: text("plan").notNull(), // pro, business
-  amount: integer("amount").notNull(),
-  status: text("status").notNull().default("pending"), // pending, success, failed
-  midtransOrderId: text("midtrans_order_id").unique(),
-  snapToken: text("snap_token"),
-  paymentInfo: text("payment_info"), // JSON string for payment details
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+export const insertTransactionSchema = z.object({
+  userId: z.number(),
+  plan: z.string(),
+  amount: z.number(),
+  status: z.string().optional(),
+  midtransOrderId: z.string().optional(),
+  paymentInfo: z.string().optional(),
 });
 
-export const settings = pgTable("settings", {
-  id: serial("id").primaryKey(),
-  key: text("key").notNull().unique(),
-  value: text("value").notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// SMM Panel Providers
-export const smmProviders = pgTable("smm_providers", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
-  name: text("name").notNull(),
-  apiKey: text("api_key").notNull(),
-  apiEndpoint: text("api_endpoint").notNull(),
-  balance: decimal("balance", { precision: 15, scale: 2 }).default("0"),
-  currency: text("currency").default("USD"),
-  balanceUpdatedAt: timestamp("balance_updated_at"),
-  isActive: boolean("is_active").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
-});
-
-// SMM Panel Services
-export const smmServices = pgTable("smm_services", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
-  providerId: integer("provider_id").references(() => smmProviders.id, { onDelete: "cascade" }).notNull(),
-  mid: integer("mid").notNull(), // Internal ID 1-10
-  name: text("name").notNull(),
-  description: text("description"),
-  min: integer("min").notNull(),
-  max: integer("max").notNull(),
-  rate: decimal("rate", { precision: 10, scale: 2 }).notNull(),
-  category: text("category").notNull(),
-  serviceIdApi: text("service_id_api").notNull(), // Original service ID from provider
-  isActive: boolean("is_active").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
-});
-
-// SMM Orders
-export const smmOrders = pgTable("smm_orders", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
-  serviceId: integer("service_id").references(() => smmServices.id, { onDelete: "cascade" }).notNull(),
-  providerId: integer("provider_id").references(() => smmProviders.id, { onDelete: "cascade" }).notNull(),
-  orderId: text("order_id").unique().notNull(), // Our internal order ID
-  providerOrderId: text("provider_order_id"), // Order ID from SMM provider
-  transactionId: integer("transaction_id").references(() => transactions.id),
-  link: text("link").notNull(), // Target URL/username
-  quantity: integer("quantity").notNull(),
-  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-  status: text("status").default("pending").notNull(), // pending, processing, completed, failed, cancelled
-  paymentStatus: text("payment_status").default("pending").notNull(), // pending, paid, failed
-  startCount: integer("start_count"),
-  remains: integer("remains"),
-  notes: text("notes"),
-  errorMessage: text("error_message"), // Error message for failed orders
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
-});
-
-
-
-// Insert schemas
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  email: true,
-  password: true,
-  fullName: true,
-});
-
-export const insertBotSchema = createInsertSchema(bots).pick({
-  token: true,
-});
-
-export const insertKnowledgeSchema = createInsertSchema(knowledge).pick({
-  botId: true,
-  type: true,
-  content: true,
-  url: true,
-  fileName: true,
-});
-
-export const insertTransactionSchema = createInsertSchema(transactions).pick({
-  userId: true,
-  plan: true,
-  amount: true,
-  status: true,
-  midtransOrderId: true,
-  paymentInfo: true,
-});
-
-export const insertSettingSchema = createInsertSchema(settings).pick({
-  key: true,
-  value: true,
+export const insertSettingSchema = z.object({
+  key: z.string(),
+  value: z.string(),
 });
 
 export const insertSmmProviderSchema = z.object({
@@ -154,200 +43,306 @@ export const insertSmmProviderSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-export const insertSmmServiceSchema = createInsertSchema(smmServices).pick({
-  userId: true,
-  providerId: true,
-  mid: true,
-  name: true,
-  description: true,
-  min: true,
-  max: true,
-  rate: true,
-  category: true,
-  serviceIdApi: true,
-  isActive: true,
+export const insertSmmServiceSchema = z.object({
+  userId: z.number(),
+  providerId: z.number(),
+  mid: z.number(),
+  name: z.string(),
+  description: z.string().optional(),
+  min: z.number(),
+  max: z.number(),
+  rate: z.number(),
+  category: z.string(),
+  serviceIdApi: z.string(),
+  isActive: z.boolean().optional(),
 });
 
-export const insertSmmOrderSchema = createInsertSchema(smmOrders).pick({
-  userId: true,
-  serviceId: true,
-  providerId: true,
-  orderId: true,
-  providerOrderId: true,
-  transactionId: true,
-  link: true,
-  quantity: true,
-  amount: true,
-  status: true,
-  paymentStatus: true,
-  startCount: true,
-  remains: true,
-  notes: true,
-  errorMessage: true,
+export const insertSmmOrderSchema = z.object({
+  userId: z.number(),
+  serviceId: z.number(),
+  providerId: z.number(),
+  orderId: z.string(),
+  providerOrderId: z.string().optional(),
+  transactionId: z.number().optional(),
+  link: z.string(),
+  quantity: z.number(),
+  amount: z.number(),
+  status: z.string().optional(),
+  paymentStatus: z.string().optional(),
+  startCount: z.number().optional(),
+  remains: z.number().optional(),
+  notes: z.string().optional(),
+  errorMessage: z.string().optional(),
 });
 
-export const autoBots = pgTable("auto_bots", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  token: text("token").notNull().unique(),
-  botName: text("bot_name").notNull(),
-  botUsername: text("bot_username").notNull(),
-  welcomeMessage: text("welcome_message").notNull().default("Selamat datang! Silakan pilih opsi di bawah ini:"),
-  welcomeImageUrl: text("welcome_image_url"), // URL gambar untuk pesan sambutan
-  keyboardConfig: json("keyboard_config").$type<{
-    id: string;
-    text: string;
-    callbackData: string;
-    url?: string;
-    level?: number;
-    parentId?: string;
-    responseText?: string; // Teks respons yang dikirim ketika tombol diklik
-    isAllShow?: boolean; // Property untuk tombol All Show
-  }[]>(),
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+export const insertAutoBotSchema = z.object({
+  userId: z.number(),
+  token: z.string(),
+  botName: z.string(),
+  botUsername: z.string(),
+  welcomeMessage: z.string().optional(),
+  welcomeImageUrl: z.string().optional(),
+  keyboardConfig: z.any().optional(),
+  isActive: z.boolean().optional(),
 });
 
-// Payment Settings table for Midtrans configuration
-export const paymentSettings = pgTable("payment_settings", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  serverKey: text("server_key").notNull(),
-  clientKey: text("client_key").notNull(),
-  isProduction: boolean("is_production").notNull().default(false),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+export const insertApiKeySchema = z.object({
+  userId: z.number(),
+  name: z.string(),
+  apiKey: z.string(),
+  isActive: z.boolean().optional(),
 });
 
-// API Keys table for provider functionality
-export const apiKeys = pgTable("api_keys", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  name: text("name").notNull(), // Changed from key_name to name for production compatibility
-  apiKey: text("api_key").notNull().unique(),
-  apiEndpoint: text("api_endpoint"),
-  balance: decimal("balance", { precision: 15, scale: 7 }).notNull().default("0"),
-  isActive: boolean("is_active").notNull().default(true),
-  totalRequests: integer("total_requests").notNull().default(0),
-  totalOrders: integer("total_orders").notNull().default(0),
-  totalRevenue: decimal("total_revenue", { precision: 10, scale: 2 }).notNull().default("0.00"),
-  lastUsed: timestamp("last_used"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  balanceUpdatedAt: timestamp("balance_updated_at"),
+export const insertTelegramOrderSchema = z.object({
+  orderId: z.string(),
+  botToken: z.string(),
+  telegramUserId: z.string(),
+  telegramUsername: z.string().optional(),
+  serviceId: z.string(),
+  serviceName: z.string(),
+  quantity: z.number(),
+  amount: z.number(),
+  currency: z.string().optional(),
+  status: z.string().optional(),
+  midtransTransactionId: z.string().optional(),
+  qrisUrl: z.string().optional(),
+  targetLink: z.string().optional(),
+  resultLink: z.string().optional(),
+  paymentExpiredAt: z.date().optional(),
 });
 
-// Telegram Bot Orders table for payment tracking
-export const telegramOrders = pgTable("telegram_orders", {
-  id: serial("id").primaryKey(),
-  orderId: text("order_id").notNull().unique(),
-  botToken: text("bot_token").notNull(),
-  telegramUserId: text("telegram_user_id").notNull(),
-  telegramUsername: text("telegram_username"),
-  serviceId: text("service_id").notNull(),
-  serviceName: text("service_name").notNull(),
-  quantity: integer("quantity").notNull(),
-  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-  currency: text("currency").notNull().default("IDR"),
-  status: text("status").notNull().default("pending"), // pending, paid, completed, cancelled
-  midtransTransactionId: text("midtrans_transaction_id"),
-  qrisUrl: text("qris_url"),
-  targetLink: text("target_link"), // Link Instagram/TikTok yang akan diproses
-  resultLink: text("result_link"), // Link hasil (foto/bukti) yang dikirim ke user
-  paymentExpiredAt: timestamp("payment_expired_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+export const insertTelegramServiceSchema = z.object({
+  botToken: z.string(),
+  serviceId: z.string(),
+  serviceName: z.string(),
+  category: z.string(),
+  description: z.string().optional(),
+  price: z.number(),
+  minQuantity: z.number().optional(),
+  maxQuantity: z.number().optional(),
+  isActive: z.boolean().optional(),
 });
 
-// Telegram Bot Services table
-export const telegramServices = pgTable("telegram_services", {
-  id: serial("id").primaryKey(),
-  botToken: text("bot_token").notNull(),
-  serviceId: text("service_id").notNull(),
-  serviceName: text("service_name").notNull(),
-  category: text("category").notNull(),
-  description: text("description"),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  minQuantity: integer("min_quantity").notNull().default(1),
-  maxQuantity: integer("max_quantity").notNull().default(10000),
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+export const insertTelegramPaymentSettingsSchema = z.object({
+  botToken: z.string(),
+  botOwnerId: z.string(),
+  midtransServerKey: z.string().optional(),
+  midtransClientKey: z.string().optional(),
+  midtransIsProduction: z.boolean().optional(),
+  isConfigured: z.boolean().optional(),
 });
 
-// Telegram Bot Payment Settings table
-export const telegramPaymentSettings = pgTable("telegram_payment_settings", {
-  id: serial("id").primaryKey(),
-  botToken: text("bot_token").notNull().unique(),
-  botOwnerId: text("bot_owner_id").notNull(), // Telegram user ID of bot owner
-  midtransServerKey: text("midtrans_server_key"),
-  midtransClientKey: text("midtrans_client_key"),
-  midtransIsProduction: boolean("midtrans_is_production").notNull().default(false),
-  isConfigured: boolean("is_configured").notNull().default(false),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+// Types berdasarkan Prisma models
+export type User = {
+  id: number;
+  username: string;
+  email: string;
+  password: string;
+  fullName: string;
+  role: string;
+  level: string;
+  credits: number;
+  createdAt: Date;
+};
 
-// Insert schemas
-export const insertAutoBotSchema = createInsertSchema(autoBots).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertApiKeySchema = createInsertSchema(apiKeys).pick({
-  userId: true,
-  name: true,
-  apiKey: true,
-  isActive: true,
-});
-
-export const insertTelegramOrderSchema = createInsertSchema(telegramOrders).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertTelegramServiceSchema = createInsertSchema(telegramServices).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertTelegramPaymentSettingsSchema = createInsertSchema(telegramPaymentSettings).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-// Types
-export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type Bot = typeof bots.$inferSelect;
-export type InsertBot = z.infer<typeof insertBotSchema>;
-export type Knowledge = typeof knowledge.$inferSelect;
-export type InsertKnowledge = z.infer<typeof insertKnowledgeSchema>;
-export type TelegramOrder = typeof telegramOrders.$inferSelect;
-export type InsertTelegramOrder = z.infer<typeof insertTelegramOrderSchema>;
-export type TelegramService = typeof telegramServices.$inferSelect;
-export type InsertTelegramService = z.infer<typeof insertTelegramServiceSchema>;
-export type TelegramPaymentSettings = typeof telegramPaymentSettings.$inferSelect;
-export type InsertTelegramPaymentSettings = z.infer<typeof insertTelegramPaymentSettingsSchema>;
-export type Transaction = typeof transactions.$inferSelect;
-export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
-export type Setting = typeof settings.$inferSelect;
-export type InsertSetting = z.infer<typeof insertSettingSchema>;
-export type SmmProvider = typeof smmProviders.$inferSelect;
-export type InsertSmmProvider = z.infer<typeof insertSmmProviderSchema>;
-export type SmmService = typeof smmServices.$inferSelect;
-export type InsertSmmService = z.infer<typeof insertSmmServiceSchema>;
-export type SmmOrder = typeof smmOrders.$inferSelect;
-export type InsertSmmOrder = z.infer<typeof insertSmmOrderSchema>;
-export type AutoBot = typeof autoBots.$inferSelect;
-export type InsertAutoBot = z.infer<typeof insertAutoBotSchema>;
-export type ApiKey = typeof apiKeys.$inferSelect;
-export type InsertApiKey = z.infer<typeof insertApiKeySchema>;
-export type PaymentSettings = typeof paymentSettings.$inferSelect;
-export type InsertPaymentSettings = typeof paymentSettings.$inferInsert;
+export type Bot = {
+  id: number;
+  userId: number;
+  token: string;
+  botName: string;
+  botUsername: string;
+  systemPrompt: string | null;
+  isActive: boolean;
+  messageCount: number;
+  createdAt: Date;
+};
 
+export type InsertBot = z.infer<typeof insertBotSchema>;
+export type Knowledge = {
+  id: number;
+  botId: number;
+  type: string;
+  content: string;
+  url: string | null;
+  fileName: string | null;
+  createdAt: Date;
+};
+
+export type InsertKnowledge = z.infer<typeof insertKnowledgeSchema>;
+export type TelegramOrder = {
+  id: number;
+  orderId: string;
+  botToken: string;
+  telegramUserId: string;
+  telegramUsername: string | null;
+  serviceId: string;
+  serviceName: string;
+  quantity: number;
+  amount: number;
+  currency: string;
+  status: string;
+  midtransTransactionId: string | null;
+  qrisUrl: string | null;
+  targetLink: string | null;
+  resultLink: string | null;
+  paymentExpiredAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type InsertTelegramOrder = z.infer<typeof insertTelegramOrderSchema>;
+export type TelegramService = {
+  id: number;
+  botToken: string;
+  serviceId: string;
+  serviceName: string;
+  category: string;
+  description: string | null;
+  price: number;
+  minQuantity: number;
+  maxQuantity: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type InsertTelegramService = z.infer<typeof insertTelegramServiceSchema>;
+export type TelegramPaymentSettings = {
+  id: number;
+  botToken: string;
+  botOwnerId: string;
+  midtransServerKey: string | null;
+  midtransClientKey: string | null;
+  midtransIsProduction: boolean;
+  isConfigured: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type InsertTelegramPaymentSettings = z.infer<typeof insertTelegramPaymentSettingsSchema>;
+export type Transaction = {
+  id: number;
+  userId: number;
+  plan: string;
+  amount: number;
+  status: string;
+  midtransOrderId: string | null;
+  snapToken: string | null;
+  paymentInfo: string | null;
+  createdAt: Date;
+};
+
+export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type Setting = {
+  id: number;
+  key: string;
+  value: string;
+  updatedAt: Date;
+};
+
+export type InsertSetting = z.infer<typeof insertSettingSchema>;
+export type SmmProvider = {
+  id: number;
+  userId: number;
+  name: string;
+  apiKey: string;
+  apiEndpoint: string;
+  balance: number;
+  currency: string | null;
+  balanceUpdatedAt: Date | null;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type InsertSmmProvider = z.infer<typeof insertSmmProviderSchema>;
+export type SmmService = {
+  id: number;
+  userId: number;
+  providerId: number;
+  mid: number;
+  name: string;
+  description: string | null;
+  min: number;
+  max: number;
+  rate: number;
+  category: string;
+  serviceIdApi: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type InsertSmmService = z.infer<typeof insertSmmServiceSchema>;
+export type SmmOrder = {
+  id: number;
+  userId: number;
+  serviceId: number;
+  providerId: number;
+  orderId: string;
+  providerOrderId: string | null;
+  transactionId: number | null;
+  link: string;
+  quantity: number;
+  amount: number;
+  status: string;
+  paymentStatus: string;
+  startCount: number | null;
+  remains: number | null;
+  notes: string | null;
+  errorMessage: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type InsertSmmOrder = z.infer<typeof insertSmmOrderSchema>;
+export type AutoBot = {
+  id: number;
+  userId: number;
+  token: string;
+  botName: string;
+  botUsername: string;
+  welcomeMessage: string;
+  welcomeImageUrl: string | null;
+  keyboardConfig: any;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type InsertAutoBot = z.infer<typeof insertAutoBotSchema>;
+export type ApiKey = {
+  id: number;
+  userId: number;
+  name: string;
+  apiKey: string;
+  apiEndpoint: string | null;
+  balance: number;
+  isActive: boolean;
+  totalRequests: number;
+  totalOrders: number;
+  totalRevenue: number;
+  lastUsed: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  balanceUpdatedAt: Date | null;
+};
+
+export type InsertApiKey = z.infer<typeof insertApiKeySchema>;
+export type PaymentSettings = {
+  id: number;
+  userId: number;
+  serverKey: string;
+  clientKey: string;
+  isProduction: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type InsertPaymentSettings = {
+  userId: number;
+  serverKey: string;
+  clientKey: string;
+  isProduction?: boolean;
+};
