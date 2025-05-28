@@ -1,232 +1,228 @@
 
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowRight, Bot, MessageSquare, Settings, Zap, Shield, Users } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export default function LandingPage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const router = useRouter()
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  useEffect(() => {
+    setIsLoaded(true)
+  }, [])
+
+  const handleGetStarted = () => {
+    router.push('/auth')
+  }
+
+  const handleLearnMore = () => {
+    router.push('/dashboard')
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 transition-all duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       {/* Navigation */}
-      <nav className="flex items-center justify-between p-6 bg-white/80 backdrop-blur-sm dark:bg-gray-900/80 border-b">
-        <div className="flex items-center space-x-2">
-          <Bot className="h-8 w-8 text-blue-600" />
-          <span className="text-2xl font-bold text-gray-900 dark:text-white">TeleBot AI</span>
-        </div>
-        <div className="flex items-center space-x-4">
-          <Link href="/auth">
-            <Button variant="ghost">Login</Button>
-          </Link>
-          <Link href="/auth">
-            <Button>Get Started</Button>
-          </Link>
+      <nav className="w-full px-6 py-4 backdrop-blur-sm bg-white/10 dark:bg-gray-900/10 border-b border-white/20">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <i className="fas fa-robot text-white text-sm"></i>
+            </div>
+            <span className="text-xl font-bold text-gray-900 dark:text-white">BotBuilder AI</span>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Button variant="ghost" onClick={() => router.push('/auth')}>
+              Sign In
+            </Button>
+            <Button onClick={handleGetStarted} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+              Get Started
+            </Button>
+          </div>
         </div>
       </nav>
 
       {/* Hero Section */}
       <section className="px-6 py-20 text-center">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-6">
-            Build Powerful Telegram Bots with
-            <span className="text-blue-600"> AI Intelligence</span>
+          <Badge variant="secondary" className="mb-4 px-4 py-2 text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+            🚀 AI-Powered Bot Builder
+          </Badge>
+          
+          <h1 className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+            Build Smart
+            <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Telegram Bots
+            </span>
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-            Create, deploy, and manage intelligent Telegram bots without coding. 
-            Integrate with SMM panels, payment systems, and AI features effortlessly.
+          
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
+            Create AI-powered Telegram bots that understand your business and provide intelligent responses to your customers. No coding required.
           </p>
-          <div className="flex justify-center space-x-4">
-            <Link href="/auth">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-                Start Building <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-            <Button size="lg" variant="outline">
-              Watch Demo
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button 
+              size="lg" 
+              onClick={handleGetStarted}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+            >
+              Start Building Now
+              <i className="fas fa-arrow-right ml-2"></i>
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              onClick={handleLearnMore}
+              className="border-2 border-gray-300 dark:border-gray-600 px-8 py-4 text-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300"
+            >
+              <i className="fas fa-play mr-2"></i>
+              See Demo
             </Button>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="px-6 py-20 bg-white dark:bg-gray-900">
+      <section className="px-6 py-20 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
-            Everything You Need to Build Amazing Bots
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card>
-              <CardHeader>
-                <Bot className="h-10 w-10 text-blue-600 mb-2" />
-                <CardTitle>AI Bot Builder</CardTitle>
-                <CardDescription>
-                  Create intelligent bots with OpenAI integration and natural language processing
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <MessageSquare className="h-10 w-10 text-green-600 mb-2" />
-                <CardTitle>Auto Bot Builder</CardTitle>
-                <CardDescription>
-                  Build bots with inline menus, automated responses, and custom workflows
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <Settings className="h-10 w-10 text-purple-600 mb-2" />
-                <CardTitle>SMM Panel Integration</CardTitle>
-                <CardDescription>
-                  Connect with social media marketing services and automate order processing
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <Zap className="h-10 w-10 text-yellow-600 mb-2" />
-                <CardTitle>Payment Gateway</CardTitle>
-                <CardDescription>
-                  Integrate Midtrans payment system for seamless transactions
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <Shield className="h-10 w-10 text-red-600 mb-2" />
-                <CardTitle>API Provider</CardTitle>
-                <CardDescription>
-                  Offer reseller services with comprehensive API management
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <Users className="h-10 w-10 text-indigo-600 mb-2" />
-                <CardTitle>Admin Dashboard</CardTitle>
-                <CardDescription>
-                  Comprehensive management panel for all your bots and services
-                </CardDescription>
-              </CardHeader>
-            </Card>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Everything You Need to Build Amazing Bots
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Our platform provides all the tools and features you need to create, deploy, and manage intelligent Telegram bots.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <Card key={index} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                <CardHeader>
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${feature.color}`}>
+                    <i className={`${feature.icon} text-white text-xl`}></i>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">
+                    {feature.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-gray-600 dark:text-gray-300 text-base leading-relaxed">
+                    {feature.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Pricing Section */}
+      {/* Stats Section */}
       <section className="px-6 py-20">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-12">
-            Simple, Transparent Pricing
+          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-12">
+            Trusted by Businesses Worldwide
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Starter</CardTitle>
-                <CardDescription>Perfect for beginners</CardDescription>
-                <div className="text-3xl font-bold">$9<span className="text-lg">/month</span></div>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-left">
-                  <li>✓ Up to 3 bots</li>
-                  <li>✓ Basic AI features</li>
-                  <li>✓ Email support</li>
-                </ul>
-                <Button className="w-full mt-4">Get Started</Button>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-blue-600">
-              <CardHeader>
-                <Badge className="mb-2">Most Popular</Badge>
-                <CardTitle>Professional</CardTitle>
-                <CardDescription>For growing businesses</CardDescription>
-                <div className="text-3xl font-bold">$29<span className="text-lg">/month</span></div>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-left">
-                  <li>✓ Unlimited bots</li>
-                  <li>✓ Advanced AI features</li>
-                  <li>✓ SMM Panel integration</li>
-                  <li>✓ Priority support</li>
-                </ul>
-                <Button className="w-full mt-4">Get Started</Button>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Enterprise</CardTitle>
-                <CardDescription>For large organizations</CardDescription>
-                <div className="text-3xl font-bold">$99<span className="text-lg">/month</span></div>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-left">
-                  <li>✓ Everything in Professional</li>
-                  <li>✓ White-label solution</li>
-                  <li>✓ Custom integrations</li>
-                  <li>✓ 24/7 phone support</li>
-                </ul>
-                <Button className="w-full mt-4">Contact Sales</Button>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                  {stat.value}
+                </div>
+                <div className="text-gray-600 dark:text-gray-300 font-medium">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
           </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="px-6 py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl font-bold text-white mb-6">
+            Ready to Build Your First Bot?
+          </h2>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Join thousands of businesses using BotBuilder AI to automate customer support and boost engagement.
+          </p>
+          <Button 
+            size="lg"
+            onClick={handleGetStarted}
+            className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+          >
+            Get Started Free
+            <i className="fas fa-rocket ml-2"></i>
+          </Button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <Bot className="h-6 w-6" />
-                <span className="text-xl font-bold">TeleBot AI</span>
+      <footer className="px-6 py-12 bg-gray-900 text-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center space-x-2 mb-4 md:mb-0">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <i className="fas fa-robot text-white text-sm"></i>
               </div>
-              <p className="text-gray-400">
-                The ultimate platform for building intelligent Telegram bots.
-              </p>
+              <span className="text-xl font-bold">BotBuilder AI</span>
             </div>
-            <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/features">Features</Link></li>
-                <li><Link href="/pricing">Pricing</Link></li>
-                <li><Link href="/docs">Documentation</Link></li>
-              </ul>
+            <div className="text-gray-400 text-center md:text-right">
+              <p>&copy; 2024 BotBuilder AI. All rights reserved.</p>
+              <p className="text-sm mt-1">Building the future of AI-powered communication.</p>
             </div>
-            <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/about">About</Link></li>
-                <li><Link href="/contact">Contact</Link></li>
-                <li><Link href="/careers">Careers</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/help">Help Center</Link></li>
-                <li><Link href="/community">Community</Link></li>
-                <li><Link href="/status">Status</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 TeleBot AI. All rights reserved.</p>
           </div>
         </div>
       </footer>
     </div>
   )
 }
+
+const features = [
+  {
+    icon: "fas fa-magic",
+    title: "AI-Powered Responses",
+    description: "Advanced GPT integration provides intelligent, context-aware responses to your customers automatically.",
+    color: "bg-gradient-to-r from-purple-500 to-pink-500"
+  },
+  {
+    icon: "fas fa-cog",
+    title: "Easy Setup",
+    description: "Create and deploy your bot in minutes with our intuitive drag-and-drop interface. No coding required.",
+    color: "bg-gradient-to-r from-blue-500 to-indigo-500"
+  },
+  {
+    icon: "fas fa-database",
+    title: "Knowledge Base",
+    description: "Upload your business documents and let your bot learn from your specific content and policies.",
+    color: "bg-gradient-to-r from-green-500 to-emerald-500"
+  },
+  {
+    icon: "fas fa-chart-line",
+    title: "Analytics Dashboard",
+    description: "Track conversations, user engagement, and bot performance with detailed analytics and insights.",
+    color: "bg-gradient-to-r from-orange-500 to-red-500"
+  },
+  {
+    icon: "fas fa-shield-alt",
+    title: "Secure & Reliable",
+    description: "Enterprise-grade security with 99.9% uptime guarantee. Your data is always protected and accessible.",
+    color: "bg-gradient-to-r from-indigo-500 to-purple-500"
+  },
+  {
+    icon: "fas fa-users",
+    title: "Multi-User Support",
+    description: "Handle thousands of simultaneous conversations with advanced queue management and response optimization.",
+    color: "bg-gradient-to-r from-teal-500 to-cyan-500"
+  }
+]
+
+const stats = [
+  { value: "10K+", label: "Active Bots" },
+  { value: "1M+", label: "Messages Processed" },
+  { value: "99.9%", label: "Uptime" },
+  { value: "500+", label: "Happy Customers" }
+]
