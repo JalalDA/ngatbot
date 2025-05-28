@@ -6,10 +6,10 @@ export class ClientSecurity {
     /token[\s=:]+[a-zA-Z0-9_.-]{10,}/gi,
     /secret[\s=:]+[a-zA-Z0-9_.-]{10,}/gi,
     /password[\s=:]+.{3,}/gi,
-    
+
     // Bot tokens
     /[0-9]{8,}:[a-zA-Z0-9_-]{30,}/gi,
-    
+
     // Email & Personal data
     /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi,
     /\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/g,
@@ -28,7 +28,7 @@ export class ClientSecurity {
    */
   private sanitizeData(data: any): string {
     let sanitized = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
-    
+
     // Replace sensitive patterns
     this.sensitivePatterns.forEach(pattern => {
       sanitized = sanitized.replace(pattern, '[PROTECTED]');
@@ -36,7 +36,7 @@ export class ClientSecurity {
 
     // Mask partial sensitive data
     sanitized = sanitized.replace(/\b\d{3}-?\d{3}-?\d{4}\b/g, 'XXX-XXX-XXXX');
-    
+
     return sanitized;
   }
 
@@ -119,7 +119,7 @@ export class ClientSecurity {
     };
 
     console.error(`🔥 ${context} Error:`, this.sanitizeData(sanitizedError));
-    
+
     // Return user-friendly error message
     return {
       message: 'Terjadi kesalahan sistem. Tim teknis telah diberitahu.',
@@ -131,35 +131,48 @@ export class ClientSecurity {
    * Monitor network requests for sensitive data
    */
   initializeNetworkMonitoring() {
-    // Override fetch to monitor requests
+    const self = this;
     const originalFetch = window.fetch;
-    
+  
     window.fetch = async (...args) => {
-      const [url, options] = args;
-      
+      let input = args[0];
+      let init = args[1];
+  
       try {
         const response = await originalFetch(...args);
-        
-        // Log only non-sensitive requests
-        if (typeof url === 'string' && !url.includes('token') && !url.includes('password')) {
-          console.log(`🌐 API: ${options?.method || 'GET'} ${url} → ${response.status}`);
+  
+        let url = '';
+        let method = 'GET';
+  
+        if (typeof input === 'string') {
+          url = input;
+          method = init?.method || 'GET';
+        } else if (input instanceof Request) {
+          url = input.url;
+          method = input.method;
+        } else if (input instanceof URL) {
+          url = input.href;
+          method = init?.method || 'GET';
         }
-        
+  
+        if (!url.includes('token') && !url.includes('password')) {
+          console.log(`🌐 API: ${method} ${url} → ${response.status}`);
+        }
+  
         return response;
       } catch (error) {
-        this.handleApiError(error, `Network Request to ${url}`);
+        let errorUrl = typeof input === 'string' ? input : (input instanceof URL ? input.href : input.url);
+        self.handleApiError(error, `Network Request to ${errorUrl}`);
         throw error;
       }
-    };
-  }
-
+    };  }
   /**
    * Initialize all security measures
    */
   initialize() {
     this.initializeSecureLogging();
     this.initializeNetworkMonitoring();
-    
+
     // Add global error handler
     window.addEventListener('error', (event) => {
       this.handleApiError(event.error, 'Global Error');
